@@ -1,5 +1,6 @@
 module BasicTrieSpec  (main, spec) where
 
+import Data.Char
 import Data.List
 import Test.Hspec
 import Test.QuickCheck
@@ -15,15 +16,32 @@ insertedWordIsPresent s = isWord s t == True
 allPrefixesOfInsertedWordArePresent :: String -> Bool
 allPrefixesOfInsertedWordArePresent s =  all (\p -> isPrefix p t) (inits s)
   where t = insertWord s emptyTrie
- 
 
+checkAfterTwoWords :: (String, String) -> Bool
+checkAfterTwoWords (s1, s2) = isWord s1 t && isWord s2 t
+  where t = fromList [s1,s2]
+  
+duple :: Gen (String, String)
+duple = do
+  s1 <- listOf1 asciiGen
+  s2 <- listOf1 asciiGen
+  return (s1, s2)
+ 
 nonEmptyString :: Gen String
-nonEmptyString = listOf1 arbitrary
+nonEmptyString = listOf1 asciiGen
+
+asciiGen :: Gen Char
+asciiGen = arbitrary `suchThat` (\c -> isAlpha c && isAscii c)
+
+
+anyChar :: Gen Char
+anyChar = arbitrary
 
 
 fromListAllWordsArePresent :: [String] -> Bool
 fromListAllWordsArePresent words = all (\w -> isWord w t) words
   where t = fromList words
+
 
 {-
 spec runner
@@ -47,6 +65,8 @@ spec = do
         quickCheck insertedWordIsPresent
       it "allPrefixesOfInsertedWordArePresent" $ do
         quickCheck allPrefixesOfInsertedWordArePresent
+      it "checkAfterTwoWords" $ do
+        quickCheck $ forAll (duple) $ checkAfterTwoWords 
       it "fromListAllWordsArePresent" $ do
         quickCheck $ forAll (listOf nonEmptyString) $ fromListAllWordsArePresent
 

@@ -19,7 +19,9 @@ emptyTrie :: Trie
 emptyTrie = Prefix (M.empty :: M.Map Char Trie)
 
 insertWord :: [Char] -> Trie -> Trie
-insertWord [] t = Word (M.empty :: M.Map Char Trie)
+insertWord [] (Prefix m) = Word m
+insertWord [] (Word m) = Word m
+insertWord [] Leaf = Leaf
 insertWord (c:cs) (Word m)
   | M.member c m = Word (M.adjust (\t -> insertWord cs t) c m)
   | otherwise    = Word (M.insert c (insertWord cs (emptyTrie)) m )
@@ -31,6 +33,7 @@ isWord :: [Char] -> Trie -> Bool
 isWord [] Leaf = True
 isWord (c:cs) Leaf = False
 isWord [] (Word m) = True
+isWord [] (Prefix m) = False
 isWord (c:cs) (Word m)
   | M.member c m = isWord cs (fromJust(M.lookup c m))
   | otherwise    = False
