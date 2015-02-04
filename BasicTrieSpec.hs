@@ -28,7 +28,7 @@ duple = do
   return (s1, s2)
  
 nonEmptyString :: Gen String
-nonEmptyString = listOf1 asciiGen
+nonEmptyString = listOf1 anyChar
 
 asciiGen :: Gen Char
 asciiGen = arbitrary `suchThat` (\c -> isAlpha c && isAscii c)
@@ -51,15 +51,34 @@ main = hspec spec
 
 spec :: Spec
 spec = do
+
   describe "BasicTrie" $ do
+  
     context "insert one word - 'bandana'" $ do
       let t = insertWord "bandana" emptyTrie
       it "should show 'bandana' is a word" $ do
         isWord "bandana" t `shouldBe` True 
       it "should show 'b', 'ban', and 'banda' are prefixes" $ do
-        isPrefix "b" t `shouldBe` True
-        isPrefix "ban" t `shouldBe` True
+        isPrefix "b" t     `shouldBe` True
+        isPrefix "ban" t   `shouldBe` True
         isPrefix "banda" t `shouldBe` True
+  
+    context "insert words that are substrings of existing word " $ do
+      let s = insertWord "bandana" emptyTrie
+      let t = insertWord "band" s
+      let u = insertWord "ban" t
+      it "should show 'bandana' 'band' and 'ban' are all words" $ do
+        isWord "bandana" u `shouldBe` True
+        isWord "ban" u     `shouldBe` True
+        isWord "band" u    `shouldBe` True
+      it "should show get the prefixes right too" $ do
+        isPrefix "ba" u     `shouldBe` True
+        isWord "ba" u       `shouldBe` False 
+        isWord "banda" u    `shouldBe` False 
+        isPrefix "banda" u  `shouldBe` True
+        isPrefix "bandan" u `shouldBe` True 
+        isWord "bandan" u   `shouldBe` False
+  
     context "QuickCheck assertions" $ do
       it "insertedWordIsPresent" $ do
         quickCheck insertedWordIsPresent
