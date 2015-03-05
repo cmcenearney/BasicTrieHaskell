@@ -7,7 +7,7 @@ import Test.QuickCheck
 import BasicTrie 
 
 {-
-quickCheck props
+quickcheck zone
 -}
 insertedWordIsPresent :: String -> Bool
 insertedWordIsPresent s = isWord s t == True
